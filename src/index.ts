@@ -38,6 +38,19 @@ export const enum LogLevel {
 }
 
 /**
+ * The 'level' of the log message, inspired by the 'winston' levels:
+ * https://github.com/winstonjs/winston#logging-levels
+ *
+ * - `"error"`: Critical log message indicating something unexpected went wrong. Similar to `console.error`.
+ * - `"warning"`: Important log message warning of something potentially troublesome. Similar to `console.warn`.
+ * - `"info"`: General log message for information. Similar to `console.log`.
+ * - `"debug"`: Particularly verbose log message, normally only needed during debugging. Similar to `console.debug`.
+ *
+ * This type is inferred from the `LogLevel` enum.
+ */
+export type LogLevelType = typeof LogLevel[keyof typeof LogLevel];
+
+/**
  * The `LogFunctionFactory` is a user-provided function that receives a scope
  * and returns a `LogFunction` that is responsible for processing log messages.
  */
@@ -53,7 +66,7 @@ export interface LogFunctionFactory<TLogScope extends {}> {
  * scope.
  */
 export interface LogFunction {
-  (level: LogLevel, message: string, meta?: LogMeta): void;
+  (level: LogLevelType, message: string, meta?: LogMeta): void;
 }
 
 /**
@@ -152,7 +165,7 @@ export interface ConsoleLogConfig<TLogScope> {
    * string.
    */
   formatParameters(
-    level: LogLevel,
+    level: LogLevelType,
     message: string,
     scope: Partial<TLogScope>,
   ): Array<unknown>;
@@ -172,7 +185,7 @@ export function makeConsoleLogFactory<TLogScope extends {}>(
   },
 ) {
   return function consoleLogFactory(scope: Partial<TLogScope>) {
-    return (level: LogLevel, message: string) => {
+    return (level: LogLevelType, message: string) => {
       if (level === LogLevel.DEBUG && !process.env.GRAPHILE_LOGGER_DEBUG) {
         return;
       }
